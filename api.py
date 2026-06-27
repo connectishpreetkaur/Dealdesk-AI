@@ -157,7 +157,9 @@ async def _run_pipeline(job_id: str, om_path: Path, memo_path: Optional[Path], p
 
         if proc.returncode != 0:
             JOBS[job_id]["status"] = "error"
-            JOBS[job_id]["error"] = f"Pipeline exited with code {proc.returncode}"
+            full_log = "\n".join(log_buffer)
+            JOBS[job_id]["error"] = f"Pipeline exited with code {proc.returncode}.\n\nFULL LOG:\n{full_log}"
+            JOBS[job_id]["full_log"] = full_log  # also stored separately
             return
 
         # ── Harvest all outputs ──────────────────────────────────────────────
@@ -258,6 +260,8 @@ async def get_status(job_id: str):
         "stage_name": job["stage_name"],
         "stages": STAGES,
         "error": job.get("error"),
+        "log_tail": job.get("log_tail", ""),
+        "full_log": job.get("full_log", ""),
     }
 
 
