@@ -156,7 +156,12 @@ def agent_financial_dashboard(deal: dict, market: dict,
     loan   = _num(deal.get("loan_amount"))
     debt   = _num(deal.get("debt_service_annual"))
     cap_in = _num(deal.get("cap_rate_inplace"))
-    units  = _num(deal.get("num_units") or deal.get("units") or deal.get("unit_count"))
+    _units_raw = deal.get("num_units") or deal.get("units") or deal.get("unit_count") or deal.get("units_or_sqft") or 0
+    if isinstance(_units_raw, str):
+        import re as _re
+        _m = _re.search(r'\d+', _units_raw)
+        _units_raw = int(_m.group()) if _m else 0
+    units = _num(_units_raw)
     assessed_value = _num(deal.get("assessed_value") or deal.get("tax_assessed_value"))
 
     # price_override wins; otherwise use OM; otherwise estimate
@@ -268,7 +273,7 @@ def agent_financial_dashboard(deal: dict, market: dict,
                 print(f"    {'  · ' + label:<26} ${val:,.0f}")
     else:
         print(f"    {'Source':<26} OM (actual asking price)")
-        print(f"    {'Asking price':<26} ${price:,.0f}")
+        print(f"    {'Asking price':<26} {f'${price:,.0f}' if price else 'Not disclosed in OM'}")
 
     print(f"\n  {BOLD}Computed Metrics:{RESET}")
     if loan_estimated:
